@@ -1,0 +1,48 @@
+# Binaries for programs and libraries
+/target/
+**/target/
+
+# Cargo package manager files
+**/Cargo.lock
+
+# Generated files
+*.rs.bk
+*.rs.swp
+*.rs.swo
+
+# Folders for Rust's documentation and build artifacts
+**/docs/
+/doc/
+/*.rs.bk
+
+# Optional 'target' folder for ARM and other architectures
+**/target/
+
+# Output of 'cargo test'
+**/*.log
+
+# VSCode settings folder (if using VSCode)
+.vscode/
+
+# JetBrains IDEs settings folder (if using CLion, IntelliJ, etc.)
+.idea/
+
+# Any other editors' or IDEs' settings files/folders can be added here
+*.DS_Store
+*.iml
+*.swp
+*.swo
+*.rs.bk
+
+# Cargo's package index
+/.cargo/registry/
+/.cargo/
+
+# Cargo git dependencies
+/.cargo/git/
+
+# Specific directories for build output (if you're using a different target directory)
+/target/
+/build/
+/install/
+/log/

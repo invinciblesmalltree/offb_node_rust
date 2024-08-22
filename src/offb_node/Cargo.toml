@@ -1,0 +1,15 @@
+[package]
+name = "offb_node"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name="offb_node"
+path="src/offb_node.rs"
+
+[dependencies]
+rclrs = "*"
+anyhow = "*"
+std_msgs = "*"
+mavros_msgs = "*"
+geometry_msgs = "*"
