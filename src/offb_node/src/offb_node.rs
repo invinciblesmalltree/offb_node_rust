@@ -6,7 +6,7 @@ use mavros_msgs::{
 use rclrs::{create_node, spin_once, Context, QOS_PROFILE_DEFAULT};
 use std::{
     env,
-    sync::{Arc, Mutex},
+    mem::transmute,
     thread::sleep,
     time::{Duration, SystemTime},
 };
@@ -15,12 +15,12 @@ fn main() -> anyhow::Result<()> {
     let context = Context::new(env::args())?;
     let mut node = create_node(&context, "offb_node")?;
 
-    let current_state = Arc::new(Mutex::new(State::default()));
-    let current_state_clone = Arc::clone(&current_state);
+    let mut current_state = State::default();
+    let current_state_ref: &mut State = unsafe { transmute(&mut current_state) };
 
     let _state_sub =
-        node.create_subscription("mavros/state", QOS_PROFILE_DEFAULT, move |msg: State| {
-            *current_state_clone.lock().unwrap() = msg;
+        node.create_subscription("mavros/state", QOS_PROFILE_DEFAULT, |msg: State| {
+            *current_state_ref = msg;
         })?;
     let local_pos_pub =
         node.create_publisher("mavros/setpoint_position/local", QOS_PROFILE_DEFAULT)?;
@@ -30,7 +30,7 @@ fn main() -> anyhow::Result<()> {
     let rate_time = Duration::from_millis(50);
     let spin_time = Some(Duration::from_secs(0));
 
-    while context.ok() && !current_state.lock().unwrap().connected {
+    while context.ok() && !current_state.connected {
         spin_once(&node, spin_time).unwrap_or(());
         sleep(rate_time);
     }
@@ -55,7 +55,7 @@ fn main() -> anyhow::Result<()> {
     let mut last_request = SystemTime::now();
 
     while context.ok() {
-        if current_state.lock().unwrap().mode != "OFFBOARD"
+        if current_state.mode != "OFFBOARD"
             && SystemTime::now().duration_since(last_request)? > Duration::from_secs(5)
         {
             set_mode_client.async_send_request_with_callback(&offb_set_mode, |res| {
@@ -64,7 +64,7 @@ fn main() -> anyhow::Result<()> {
                 }
             })?;
             last_request = SystemTime::now();
-        } else if !current_state.lock().unwrap().armed
+        } else if !current_state.armed
             && SystemTime::now().duration_since(last_request)? > Duration::from_secs(5)
         {
             arming_client.async_send_request_with_callback(&arm_cmd, |res| {
