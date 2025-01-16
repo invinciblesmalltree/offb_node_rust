@@ -13,7 +13,7 @@ use std::{
 
 fn main() -> anyhow::Result<()> {
     let context = Context::new(env::args())?;
-    let mut node = create_node(&context, "offb_node")?;
+    let node = create_node(&context, "offb_node")?;
 
     let current_state = Arc::new(Mutex::new(State::default()));
     let current_state_clone = Arc::clone(&current_state);
@@ -31,7 +31,7 @@ fn main() -> anyhow::Result<()> {
     let spin_time = Some(Duration::from_secs(0));
 
     while context.ok() && !current_state.lock().unwrap().connected {
-        spin_once(&node, spin_time).unwrap_or(());
+        spin_once(node.clone(), spin_time).unwrap_or(());
         sleep(rate_time);
     }
 
@@ -42,7 +42,7 @@ fn main() -> anyhow::Result<()> {
 
     for _i in 0..100 {
         local_pos_pub.publish(&pose)?;
-        spin_once(&node, spin_time).unwrap_or(());
+        spin_once(node.clone(), spin_time).unwrap_or(());
         sleep(rate_time);
     }
 
@@ -77,7 +77,7 @@ fn main() -> anyhow::Result<()> {
 
         local_pos_pub.publish(&pose)?;
 
-        spin_once(&node, spin_time).unwrap_or(());
+        spin_once(node.clone(), spin_time).unwrap_or(());
         sleep(rate_time);
     }
 
