@@ -3,17 +3,18 @@ use mavros_msgs::{
     msg::State,
     srv::{CommandBool, CommandBool_Request, SetMode, SetMode_Request},
 };
-use rclrs::{create_node, spin_once, Context, QOS_PROFILE_DEFAULT};
+use rclrs::*;
 use std::{
-    env,
     sync::{Arc, Mutex},
     thread::sleep,
     time::{Duration, SystemTime},
 };
 
 fn main() -> anyhow::Result<()> {
-    let context = Context::new(env::args())?;
-    let node = create_node(&context, "offb_node")?;
+    let context = Context::default_from_env()?;
+    let mut executor = context.create_basic_executor();
+
+    let node = executor.create_node("offb_node")?;
 
     let current_state = Arc::new(Mutex::new(State::default()));
     let current_state_clone = Arc::clone(&current_state);
@@ -28,10 +29,9 @@ fn main() -> anyhow::Result<()> {
     let set_mode_client = node.create_client::<SetMode>("mavros/set_mode")?;
 
     let rate_time = Duration::from_millis(50);
-    let spin_time = Some(Duration::from_secs(0));
 
     while context.ok() && !current_state.lock().unwrap().connected {
-        spin_once(node.clone(), spin_time).unwrap_or(());
+        executor.spin(SpinOptions::spin_once().timeout(Duration::ZERO));
         sleep(rate_time);
     }
 
@@ -42,7 +42,7 @@ fn main() -> anyhow::Result<()> {
 
     for _i in 0..100 {
         local_pos_pub.publish(&pose)?;
-        spin_once(node.clone(), spin_time).unwrap_or(());
+        executor.spin(SpinOptions::spin_once().timeout(Duration::ZERO));
         sleep(rate_time);
     }
 
@@ -77,7 +77,7 @@ fn main() -> anyhow::Result<()> {
 
         local_pos_pub.publish(&pose)?;
 
-        spin_once(node.clone(), spin_time).unwrap_or(());
+        executor.spin(SpinOptions::spin_once().timeout(Duration::ZERO));
         sleep(rate_time);
     }
 
