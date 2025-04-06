@@ -19,12 +19,11 @@ fn main() -> anyhow::Result<()> {
     let current_state = Arc::new(Mutex::new(State::default()));
     let current_state_clone = Arc::clone(&current_state);
 
-    let _state_sub =
-        node.create_subscription("mavros/state", QOS_PROFILE_DEFAULT, move |msg: State| {
-            *current_state_clone.lock().unwrap() = msg;
-        })?;
+    let _state_sub = node.create_subscription("mavros/state", move |msg: State| {
+        *current_state_clone.lock().unwrap() = msg;
+    })?;
     let local_pos_pub =
-        node.create_publisher("mavros/setpoint_position/local", QOS_PROFILE_DEFAULT)?;
+        node.create_publisher("mavros/setpoint_position/local")?;
     let arming_client = node.create_client::<CommandBool>("mavros/cmd/arming")?;
     let set_mode_client = node.create_client::<SetMode>("mavros/set_mode")?;
 
